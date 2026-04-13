@@ -1,8 +1,14 @@
+import { lazy, Suspense } from 'react'
 import { AboutSection } from '../components/sections/AboutSection'
-import { GalaxySection } from '../components/sections/GalaxySection'
 import { HeroSection } from '../components/sections/HeroSection'
 import { PillarsSection } from '../components/sections/PillarsSection'
 import { ThemeStrip } from '../components/sections/ThemeStrip'
+
+const GalaxySection = lazy(() =>
+  import('../components/sections/GalaxySection').then((m) => ({
+    default: m.GalaxySection,
+  })),
+)
 
 export function HomePage() {
   return (
@@ -11,7 +17,17 @@ export function HomePage() {
       <PillarsSection />
       <ThemeStrip />
       <AboutSection />
-      <GalaxySection />
+      <Suspense
+        fallback={
+          <section
+            className="galaxy-section"
+            aria-hidden
+            style={{ minHeight: 'min(78vh, 92vh)' }}
+          />
+        }
+      >
+        <GalaxySection />
+      </Suspense>
     </main>
   )
 }

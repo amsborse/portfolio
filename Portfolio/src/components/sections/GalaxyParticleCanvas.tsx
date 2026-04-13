@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react'
 import {
+  bindCanvasRunState,
+  canvasBackingDpr,
+} from '../../lib/canvasAnimationGuard'
+import {
   createGalaxyFieldViewport,
   createGalaxyParticleField,
   stepGalaxyParticleField,
@@ -13,8 +17,8 @@ type GalaxyParticleCanvasProps = {
   reduceMotion?: boolean
 }
 
-const MIN_COUNT = 1000
-const MAX_COUNT = 2100
+const MIN_COUNT = 560
+const MAX_COUNT = 1380
 const VIRTUAL_WIDTH = 1000
 const VIRTUAL_HEIGHT = 820
 
@@ -28,7 +32,7 @@ type ViewTransform = {
 
 function particleCountForSurface(cssW: number, cssH: number) {
   const area = Math.max(1, cssW * cssH)
-  const estimated = Math.floor(area / 58)
+  const estimated = Math.floor(area / 78)
   return Math.max(MIN_COUNT, Math.min(MAX_COUNT, estimated))
 }
 
@@ -129,6 +133,7 @@ export function GalaxyParticleCanvas({
   )
   const rafRef = useRef(0)
   const lastRef = useRef(0)
+  const shouldAnimRef = useRef(true)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -139,7 +144,19 @@ export function GalaxyParticleCanvas({
 
     const surface = canvas
     const context = ctx
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const dpr = canvasBackingDpr()
+
+    const disposeRun = bindCanvasRunState(
+      surface,
+      (run) => {
+        shouldAnimRef.current = run
+        if (run && !reduceMotion) {
+          cancelAnimationFrame(rafRef.current)
+          rafRef.current = requestAnimationFrame(draw)
+        }
+      },
+      { rootMargin: '160px 0px' },
+    )
 
     const getSurfaceRect = () => surface.getBoundingClientRect()
 
@@ -211,6 +228,8 @@ export function GalaxyParticleCanvas({
     const viewport = createGalaxyFieldViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
 
     function draw(ts: number) {
+      if (!shouldAnimRef.current) return
+
       const last = lastRef.current || ts
       const rawDt = ts - last
       lastRef.current = ts
@@ -218,7 +237,9 @@ export function GalaxyParticleCanvas({
 
       const list = particlesRef.current
       if (!list) {
-        rafRef.current = requestAnimationFrame(draw)
+        if (!reduceMotion && shouldAnimRef.current) {
+          rafRef.current = requestAnimationFrame(draw)
+        }
         return
       }
 
@@ -226,7 +247,9 @@ export function GalaxyParticleCanvas({
       const cssW = rect.width
       const cssH = rect.height
       if (cssW <= 0 || cssH <= 0) {
-        rafRef.current = requestAnimationFrame(draw)
+        if (!reduceMotion && shouldAnimRef.current) {
+          rafRef.current = requestAnimationFrame(draw)
+        }
         return
       }
 
@@ -416,13 +439,14 @@ export function GalaxyParticleCanvas({
       context.globalCompositeOperation = 'source-over'
       context.restore()
 
-      if (!reduceMotion) {
+      if (!reduceMotion && shouldAnimRef.current) {
         rafRef.current = requestAnimationFrame(draw)
       }
     }
 
     rafRef.current = requestAnimationFrame(draw)
     return () => {
+      disposeRun()
       cancelAnimationFrame(rafRef.current)
       surface.removeEventListener('pointermove', onPointerMove)
       surface.removeEventListener('pointerleave', onPointerLeave)

@@ -1,4 +1,5 @@
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
+import * as m from 'motion/react-m'
+import { useReducedMotion, useScroll, useTransform } from 'motion/react'
 
 export function BackgroundAurora() {
   const reduce = useReducedMotion()
@@ -18,24 +19,24 @@ export function BackgroundAurora() {
 
   return (
     <div className="aurora" aria-hidden>
-      <motion.div
+      <m.div
         className="aurora__blob aurora__blob--violet"
         style={{ y: driftDown }}
         animate={{ x: [0, 28, -18, 0], y: [0, -22, 14, 0] }}
         transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
+      <m.div
         className="aurora__blob aurora__blob--cyan"
         style={{ y: driftUp }}
         animate={{ x: [0, -32, 24, 0], y: [0, 26, -16, 0] }}
         transition={{ duration: 32, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
+      <m.div
         className="aurora__blob aurora__blob--indigo"
         animate={{ x: [0, 20, -26, 0], y: [0, 18, -22, 0] }}
         transition={{ duration: 36, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
+      <m.div
         className="aurora__blob aurora__blob--amber"
         style={{ y: driftDown }}
         animate={{ x: [0, -14, 18, 0], y: [0, -12, 10, 0] }}

@@ -1,4 +1,5 @@
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
+import * as m from 'motion/react-m'
+import { useReducedMotion, useScroll, useTransform } from 'motion/react'
 import { useHeroParallax } from '../../lib/useHeroParallax'
 import { InfinityParticleCanvas } from './InfinityParticleCanvas'
 
@@ -28,13 +29,13 @@ export function HeroInfinityScene() {
         }}
       >
         <div className="hero-infinity-scene__parallax">
-          <motion.div
+          <m.div
             className="hero-infinity-scene__ambient"
             style={{ y: yAmbient }}
             aria-hidden
           />
 
-          <motion.div
+          <m.div
             className="hero-infinity-scene__field-wrap"
             style={{ y: ySymbol }}
           >
@@ -43,7 +44,7 @@ export function HeroInfinityScene() {
             <div className="hero-infinity-scene__veil" aria-hidden />
             <div className="hero-infinity-scene__edge-fade" aria-hidden />
             <div className="hero-infinity-scene__grain hero-infinity-scene__grain--infinity" />
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </div>

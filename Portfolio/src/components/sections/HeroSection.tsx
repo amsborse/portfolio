@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from 'motion/react'
+import * as m from 'motion/react-m'
+import { useReducedMotion } from 'motion/react'
 import { Network, PenLine } from 'lucide-react'
 import { homeContent } from '../../content/home'
 import { getHeroStagger, heroItem } from '../../lib/motion-variants'
@@ -15,27 +16,27 @@ export function HeroSection() {
       <HeroInfinityScene />
 
       <div className="hero-section__content hero-section__content--below-scene">
-        <motion.div
+        <m.div
           className="hero-section__copy"
           variants={getHeroStagger(!!reduce)}
           initial={reduce ? false : 'hidden'}
           animate="visible"
         >
-          <motion.div variants={heroItem}>
+          <m.div variants={heroItem}>
             <p className="hero-section__eyebrow">{homeContent.roles}</p>
-          </motion.div>
-          <motion.div variants={heroItem}>
+          </m.div>
+          <m.div variants={heroItem}>
             <h1 id="hero-name" className="hero-section__name">
               {homeContent.name}
             </h1>
-          </motion.div>
-          <motion.p className="hero-section__tagline" variants={heroItem}>
+          </m.div>
+          <m.p className="hero-section__tagline" variants={heroItem}>
             {homeContent.tagline}
-          </motion.p>
-          <motion.p className="hero-section__support" variants={heroItem}>
+          </m.p>
+          <m.p className="hero-section__support" variants={heroItem}>
             {homeContent.heroDescription}
-          </motion.p>
-          <motion.div className="hero-section__ctas" variants={heroItem}>
+          </m.p>
+          <m.div className="hero-section__ctas" variants={heroItem}>
             {homeContent.ctas.map((cta) => (
               <MagneticButton
                 key={cta.id}
@@ -50,8 +51,8 @@ export function HeroSection() {
                 {cta.label}
               </MagneticButton>
             ))}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </div>
     </header>
   )

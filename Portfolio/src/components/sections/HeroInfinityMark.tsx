@@ -1,5 +1,6 @@
 import { useId } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import * as m from 'motion/react-m'
+import { useReducedMotion } from 'motion/react'
 import { buildInfinityPathD } from '../../lib/infinityCurve'
 
 const VB = 400
@@ -106,7 +107,7 @@ export function HeroInfinityMark() {
       />
 
       {!reduce && (
-        <motion.circle
+        <m.circle
           cx={CX}
           cy={CY}
           r={9}

@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react'
 import {
+  bindCanvasRunState,
+  canvasBackingDpr,
+} from '../../lib/canvasAnimationGuard'
+import {
   createInfinityFieldViewport,
   createInfinityParticleField,
   stepInfinityParticleField,
@@ -12,8 +16,8 @@ type InfinityParticleCanvasProps = {
   reduceMotion?: boolean
 }
 
-const MIN_COUNT = 1100
-const MAX_COUNT = 2200
+const MIN_COUNT = 720
+const MAX_COUNT = 1550
 const VIRTUAL_WIDTH = 1000
 const VIRTUAL_HEIGHT = 620
 
@@ -27,7 +31,7 @@ type ViewTransform = {
 
 function particleCountForSurface(cssW: number, cssH: number) {
   const area = Math.max(1, cssW * cssH)
-  const estimated = Math.floor(area / 54)
+  const estimated = Math.floor(area / 72)
   return Math.max(MIN_COUNT, Math.min(MAX_COUNT, estimated))
 }
 
@@ -133,6 +137,7 @@ export function InfinityParticleCanvas({
   )
   const rafRef = useRef(0)
   const lastRef = useRef(0)
+  const shouldAnimRef = useRef(true)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -143,7 +148,19 @@ export function InfinityParticleCanvas({
 
     const surface = canvas
     const context = ctx
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const dpr = canvasBackingDpr()
+
+    const disposeRun = bindCanvasRunState(
+      surface,
+      (run) => {
+        shouldAnimRef.current = run
+        if (run && !reduceMotion) {
+          cancelAnimationFrame(rafRef.current)
+          rafRef.current = requestAnimationFrame(draw)
+        }
+      },
+      { rootMargin: '80px 0px' },
+    )
 
     const getSurfaceRect = () => surface.getBoundingClientRect()
 
@@ -210,6 +227,8 @@ export function InfinityParticleCanvas({
     const viewport = createInfinityFieldViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
 
     function draw(ts: number) {
+      if (!shouldAnimRef.current) return
+
       const last = lastRef.current || ts
       const rawDt = ts - last
       lastRef.current = ts
@@ -217,7 +236,9 @@ export function InfinityParticleCanvas({
 
       const list = particlesRef.current
       if (!list) {
-        rafRef.current = requestAnimationFrame(draw)
+        if (!reduceMotion && shouldAnimRef.current) {
+          rafRef.current = requestAnimationFrame(draw)
+        }
         return
       }
 
@@ -225,7 +246,9 @@ export function InfinityParticleCanvas({
       const cssW = rect.width
       const cssH = rect.height
       if (cssW <= 0 || cssH <= 0) {
-        rafRef.current = requestAnimationFrame(draw)
+        if (!reduceMotion && shouldAnimRef.current) {
+          rafRef.current = requestAnimationFrame(draw)
+        }
         return
       }
 
@@ -364,13 +387,14 @@ export function InfinityParticleCanvas({
       context.globalCompositeOperation = 'source-over'
       context.restore()
 
-      if (!reduceMotion) {
+      if (!reduceMotion && shouldAnimRef.current) {
         rafRef.current = requestAnimationFrame(draw)
       }
     }
 
     rafRef.current = requestAnimationFrame(draw)
     return () => {
+      disposeRun()
       cancelAnimationFrame(rafRef.current)
       surface.removeEventListener('pointermove', onPointerMove)
       surface.removeEventListener('pointerleave', onPointerLeave)

@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { useReducedMotion } from 'motion/react'
+import {
+  bindCanvasRunState,
+  canvasBackingDpr,
+} from '../../lib/canvasAnimationGuard'
 
 type Pointer = { x: number; y: number } | null
 
@@ -46,10 +50,10 @@ function colorForParticle(p: CosmicParticle, alpha: number) {
 function countsForViewport(width: number, height: number) {
   const area = Math.max(1, width * height)
   return {
-    micro: clamp(120, Math.floor(area / 14000), 420),
-    mid: clamp(46, Math.floor(area / 36000), 170),
-    hero: clamp(10, Math.floor(area / 120000), 40),
-    dust: clamp(34, Math.floor(area / 42000), 120),
+    micro: clamp(96, Math.floor(area / 20000), 300),
+    mid: clamp(38, Math.floor(area / 48000), 130),
+    hero: clamp(8, Math.floor(area / 165000), 32),
+    dust: clamp(26, Math.floor(area / 56000), 88),
   }
 }
 
@@ -135,6 +139,7 @@ export function CosmicParticleBackground() {
   const scrollRef = useRef(0)
   const rafRef = useRef(0)
   const lastRef = useRef(0)
+  const shouldAnimRef = useRef(true)
   const reduce = useReducedMotion()
 
   useEffect(() => {
@@ -145,7 +150,19 @@ export function CosmicParticleBackground() {
     const surface: HTMLCanvasElement = canvas
     const context: CanvasRenderingContext2D = ctx
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const dpr = canvasBackingDpr()
+
+    const disposeRun = bindCanvasRunState(
+      surface,
+      (run) => {
+        shouldAnimRef.current = run
+        if (run && !reduce) {
+          cancelAnimationFrame(rafRef.current)
+          rafRef.current = requestAnimationFrame(draw)
+        }
+      },
+      { rootMargin: '0px' },
+    )
 
     function resize() {
       const parent = surface.parentElement
@@ -191,6 +208,8 @@ export function CosmicParticleBackground() {
     lastRef.current = 0
 
     function draw(ts: number) {
+      if (!shouldAnimRef.current) return
+
       const last = lastRef.current || ts
       const dt = Math.min(36, ts - last) / 16.67
       lastRef.current = ts
@@ -198,7 +217,9 @@ export function CosmicParticleBackground() {
       const w = surface.clientWidth
       const h = surface.clientHeight
       if (!w || !h) {
-        rafRef.current = requestAnimationFrame(draw)
+        if (!reduce && shouldAnimRef.current) {
+          rafRef.current = requestAnimationFrame(draw)
+        }
         return
       }
 
@@ -295,7 +316,7 @@ export function CosmicParticleBackground() {
         }
       }
 
-      if (!reduce) {
+      if (!reduce && shouldAnimRef.current) {
         rafRef.current = requestAnimationFrame(draw)
       }
     }
@@ -303,6 +324,7 @@ export function CosmicParticleBackground() {
     rafRef.current = requestAnimationFrame(draw)
 
     return () => {
+      disposeRun()
       cancelAnimationFrame(rafRef.current)
       if (ro) ro.disconnect()
       else window.removeEventListener('resize', resize)

@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from 'motion/react'
+import * as m from 'motion/react-m'
+import { useReducedMotion } from 'motion/react'
 import { GalaxyParticleCanvas } from './GalaxyParticleCanvas'
 
 /**
@@ -13,7 +14,7 @@ export function GalaxySection() {
       <div className="galaxy-section__backdrop" aria-hidden />
       <div className="galaxy-section__ambient" aria-hidden />
       <div className="galaxy-section__scene">
-        <motion.div
+        <m.div
           className="galaxy-section__field-wrap"
           initial={reduce ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -24,7 +25,7 @@ export function GalaxySection() {
           <div className="galaxy-section__veil" aria-hidden />
           <div className="galaxy-section__edge-fade" aria-hidden />
           <div className="galaxy-section__grain" aria-hidden />
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )
