@@ -174,7 +174,7 @@ export function createGalaxyParticleField(
     if (Math.random() < 0.12) {
       spiralTheta = thetaMin + Math.random() * (thetaMax - thetaMin) * 0.12
     } else {
-      spiralTheta = sampleThetaBiased(thetaMin, thetaMax, 1.88)
+      spiralTheta = sampleThetaBiased(thetaMin, thetaMax, 1.35)
     }
 
     const deltaPhi = gaussian() * 0.048

@@ -324,6 +324,8 @@ export function GalaxyParticleCanvas({
       const glowBreath = 1 + 0.03 * Math.sin(ts * 0.00006 + 0.9)
 
       const layers: GalaxyLayer[] = ['dust', 'mid', 'core']
+      /** Keep particles at least ~0.6 CSS px so outer arms don't vanish on smaller canvases. */
+      const minRadius = 0.6 / Math.max(view.scale, 1e-6)
 
       for (const layer of layers) {
         for (const p of list) {
@@ -347,7 +349,8 @@ export function GalaxyParticleCanvas({
             p.alpha * twinkle * breathGlobal * toneScale * depthMul
           const { glow, core } = colorsForGalaxy(p.layer, p.hue, alpha)
           const gs = glowScaleForLayer(p.layer) * glowBreath
-          const glowSize = p.size * gs * (layer === 'core' ? 1.03 : 1)
+          const radius = Math.max(p.size, minRadius)
+          const glowSize = radius * gs * (layer === 'core' ? 1.03 : 1)
 
           context.fillStyle = glow
           context.beginPath()
@@ -356,7 +359,7 @@ export function GalaxyParticleCanvas({
 
           context.fillStyle = core
           context.beginPath()
-          context.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+          context.arc(p.x, p.y, radius, 0, Math.PI * 2)
           context.fill()
 
           if (layer === 'core') {
